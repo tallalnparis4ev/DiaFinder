@@ -15,9 +15,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FundingType } from "@/data/medications";
+import { calculateDistance } from "@/lib/distance";
+import { LocationModal } from "@/components/LocationModal";
+import { getCountryCode } from "countries-list";
 
 export default function MedicationDetails() {
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [searchLocation, setSearchLocation] = useState<{
+    latitude: number;
+    longitude: number;
+    country: string;
+  } | null>(null);
   const [selectedFundingType, setSelectedFundingType] = useState<string | null>(
     null
   );
@@ -34,9 +41,8 @@ export default function MedicationDetails() {
         (avail) =>
           avail.Medication === medicationName &&
           avail.ObtainingMethod === method.ID &&
-          (!selectedCountry ||
-            selectedCountry === "all" ||
-            avail.Country === selectedCountry)
+          (!searchLocation ||
+            getCountryCode(avail.Country.name) === searchLocation.country)
       );
 
       const fundingTypeMatch =
@@ -46,10 +52,46 @@ export default function MedicationDetails() {
 
       return availabilityMatch && fundingTypeMatch;
     });
-  }, [medicationName, selectedCountry, selectedFundingType]);
+  }, [medicationName, searchLocation?.country, selectedFundingType]);
+
+  const sortedObtainingMethods = useMemo(() => {
+    if (!searchLocation) return filteredObtainingMethods;
+
+    return [...filteredObtainingMethods].sort((a, b) => {
+      const distanceA = a.Method.Coordinates
+        ? calculateDistance(
+            searchLocation.latitude,
+            searchLocation.longitude,
+            a.Method.Coordinates.latitude,
+            a.Method.Coordinates.longitude
+          )
+        : Infinity;
+
+      const distanceB = b.Method.Coordinates
+        ? calculateDistance(
+            searchLocation.latitude,
+            searchLocation.longitude,
+            b.Method.Coordinates.latitude,
+            b.Method.Coordinates.longitude
+          )
+        : Infinity;
+
+      return distanceA - distanceB;
+    });
+  }, [filteredObtainingMethods, searchLocation]);
 
   if (!medication) {
     return <div>Medication not found</div>;
+  }
+
+  if (!searchLocation) {
+    return (
+      <LocationModal
+        open={true}
+        onLocationSelect={setSearchLocation}
+        onClose={() => window.history.back()}
+      />
+    );
   }
 
   return (
@@ -87,26 +129,6 @@ export default function MedicationDetails() {
           <div>
             <div className="flex gap-4 mb-6">
               <div className="w-48">
-                <h3 className="text-sm font-medium mb-2">Country</h3>
-                <Select
-                  value={selectedCountry || undefined}
-                  onValueChange={setSelectedCountry}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Countries" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Countries</SelectItem>
-                    {data.Country.map((country) => (
-                      <SelectItem key={country.name} value={country.name}>
-                        {country.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-48">
                 <h3 className="text-sm font-medium mb-2">Funding Type</h3>
                 <Select
                   value={selectedFundingType || undefined}
@@ -129,7 +151,7 @@ export default function MedicationDetails() {
 
             <h2 className="text-2xl font-bold mb-4">How to Obtain</h2>
             <div className="grid gap-6">
-              {filteredObtainingMethods.map((method) => (
+              {sortedObtainingMethods.map((method) => (
                 <Card key={method.ID}>
                   <CardHeader>
                     <CardTitle>{method.Method.Name}</CardTitle>

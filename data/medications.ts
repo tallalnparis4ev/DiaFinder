@@ -1,8 +1,13 @@
-import { countries, Country, State, Region } from "typed-countries";
+import {
+  countries,
+  ICountry,
+  TCountries,
+  getCountryCode,
+} from "countries-list";
 
 export type Availability = {
   ID: string; // UUID
-  Country: string;
+  Country: ICountry;
   Medication: string;
   ObtainingMethod: string;
 };
@@ -28,6 +33,10 @@ export type Method = {
   OperatingHours?: string;
   Tips?: string[];
   Requirements?: string[];
+  Coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
 };
 
 export enum FundingType {
@@ -44,7 +53,7 @@ export type ObtainingMethod = {
 
 export type RootSchema = {
   Availability: Availability[];
-  Country: Country[];
+  Country: TCountries;
   Medication: Medication[];
   ObtainingMethod: ObtainingMethod[];
 };
@@ -132,13 +141,13 @@ export const data: RootSchema = {
   Availability: [
     {
       ID: "e84ef82b-7a2f-474a-a243-d6ead4ae0ff9",
-      Country: "USA",
+      Country: countries.US,
       Medication: "OmniPod DASH",
       ObtainingMethod: "d9b2b05e-44b0-45ff-a2ab-4de3eae3aef2",
     },
     {
       ID: "979c967d-a603-4045-8b8e-3d9bd892d3da",
-      Country: "Canada",
+      Country: countries.CA,
       Medication: "Dexcom G6",
       ObtainingMethod: "b38a50f6-58c1-405f-9bb8-2b9c647b1e77",
     },
