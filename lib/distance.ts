@@ -22,5 +22,6 @@ export function calculateDistance(
 }
 
 function toRad(degrees: number): number {
+  console.log("hey");
   return degrees * (Math.PI / 180);
 }
