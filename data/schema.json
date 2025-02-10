@@ -1,0 +1,85 @@
+{
+  "type": "object",
+  "properties": {
+    "Availability": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ID": { "type": "string", "format": "uuid" },
+          "Country": { "type": "string" },
+          "Medication": { "type": "string" },
+          "ObtainingMethod": { "type": "string" }
+        },
+        "required": ["ID", "Country", "Medication", "ObtainingMethod"]
+      }
+    },
+    "Country": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Name": { "type": "string" }
+        },
+        "required": ["Name"]
+      }
+    },
+    "Medication": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Name": { "type": "string" },
+          "GenericName": { "type": "string" },
+          "Manufacturer": { "type": "string" },
+          "Category": {
+            "type": "string",
+            "enum": [
+              "Insulin Pump",
+              "Continuous Glucose Monitor",
+              "Insulin Disposable Pen",
+              "Insulin Cartridges",
+              "Insulin Vials"
+            ]
+          }
+        },
+        "required": ["Name", "GenericName", "Manufacturer", "Category"]
+      }
+    },
+    "ObtainingMethod": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ID": { "type": "string", "format": "uuid" },
+          "FundingType": { "type": "string" },
+          "Method": {
+            "type": "object",
+            "properties": {
+              "Type": {
+                "type": "string",
+                "enum": ["Pharmacy", "Hospital", "OnlineStore", "Clinic"]
+              },
+              "Name": { "type": "string" },
+              "Website": { "type": "string", "format": "uri" },
+              "Address": { "type": "string" },
+              "PhoneNumber": { "type": "string" },
+              "OperatingHours": { "type": "string" },
+              "Tips": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "Requirements": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            },
+            "required": ["Type", "Name"]
+          }
+        },
+        "required": ["ID", "FundingType", "Method"]
+      }
+    }
+  },
+  "required": ["Availability", "Country", "Medication", "ObtainingMethod"]
+}
