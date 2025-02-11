@@ -32,25 +32,19 @@ export default function MedicationDetails() {
   const params = useParams();
   const medicationName = decodeURIComponent(params.name as string);
   const medication = data.Medication.find((med) => med.Name === medicationName);
-
+  if (!medication) return null;
   const fundingTypes = Object.values(FundingType);
 
   const filteredObtainingMethods = useMemo(() => {
-    return data.ObtainingMethod.filter((method) => {
-      const availabilityMatch = data.Availability.some(
-        (avail) =>
-          avail.Medication === medicationName &&
-          avail.ObtainingMethod === method.ID &&
-          (!searchLocation ||
-            getCountryCode(avail.Country.name) === searchLocation.country)
-      );
-
+    return medication.Availability.filter((avail) => {
+      const locationMatch =
+        !searchLocation ||
+        getCountryCode(avail.Country.name) === searchLocation.country;
       const fundingTypeMatch =
         !selectedFundingType ||
         selectedFundingType === "all" ||
-        method.FundingType === selectedFundingType;
-
-      return availabilityMatch && fundingTypeMatch;
+        avail.FundingType === selectedFundingType;
+      return locationMatch && fundingTypeMatch;
     });
   }, [medicationName, searchLocation?.country, selectedFundingType]);
 
@@ -58,21 +52,21 @@ export default function MedicationDetails() {
     if (!searchLocation) return filteredObtainingMethods;
 
     return [...filteredObtainingMethods].sort((a, b) => {
-      const distanceA = a.Method.Coordinates
+      const distanceA = a.Coordinates
         ? calculateDistance(
             searchLocation.latitude,
             searchLocation.longitude,
-            a.Method.Coordinates.latitude,
-            a.Method.Coordinates.longitude
+            a.Coordinates.latitude,
+            a.Coordinates.longitude
           )
         : Infinity;
 
-      const distanceB = b.Method.Coordinates
+      const distanceB = b.Coordinates
         ? calculateDistance(
             searchLocation.latitude,
             searchLocation.longitude,
-            b.Method.Coordinates.latitude,
-            b.Method.Coordinates.longitude
+            b.Coordinates.latitude,
+            b.Coordinates.longitude
           )
         : Infinity;
 
@@ -152,62 +146,62 @@ export default function MedicationDetails() {
             <h2 className="text-2xl font-bold mb-4">How to Obtain</h2>
             <div className="grid gap-6">
               {sortedObtainingMethods.map((method) => (
-                <Card key={method.ID}>
+                <Card>
                   <CardHeader>
-                    <CardTitle>{method.Method.Name}</CardTitle>
+                    <CardTitle>{method.Name}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
                       <p>
-                        <strong>Type:</strong> {method.Method.Type}
+                        <strong>Type:</strong> {method.Type}
                       </p>
                       <p>
                         <strong>Funding Type:</strong> {method.FundingType}
                       </p>
-                      {method.Method.Website && (
+                      {method.Website && (
                         <p>
                           <strong>Website:</strong>{" "}
                           <a
-                            href={method.Method.Website}
+                            href={method.Website}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-500 hover:underline"
                           >
-                            {method.Method.Website}
+                            {method.Website}
                           </a>
                         </p>
                       )}
-                      {method.Method.Address && (
+                      {method.Address && (
                         <p>
-                          <strong>Address:</strong> {method.Method.Address}
+                          <strong>Address:</strong> {method.Address}
                         </p>
                       )}
-                      {method.Method.PhoneNumber && (
+                      {method.PhoneNumber && (
                         <p>
-                          <strong>Phone:</strong> {method.Method.PhoneNumber}
+                          <strong>Phone:</strong> {method.PhoneNumber}
                         </p>
                       )}
-                      {method.Method.OperatingHours && (
+                      {method.OperatingHours && (
                         <p>
-                          <strong>Hours:</strong> {method.Method.OperatingHours}
+                          <strong>Hours:</strong> {method.OperatingHours}
                         </p>
                       )}
-                      {method.Method.Tips && method.Method.Tips.length > 0 && (
+                      {method.Tips && method.Tips.length > 0 && (
                         <div>
                           <strong>Tips:</strong>
                           <ul className="list-disc pl-5 mt-1">
-                            {method.Method.Tips.map((tip, index) => (
+                            {method.Tips.map((tip, index) => (
                               <li key={index}>{tip}</li>
                             ))}
                           </ul>
                         </div>
                       )}
-                      {method.Method.Requirements &&
-                        method.Method.Requirements.length > 0 && (
+                      {method.Requirements &&
+                        method.Requirements.length > 0 && (
                           <div>
                             <strong>Requirements:</strong>
                             <ul className="list-disc pl-5 mt-1">
-                              {method.Method.Requirements.map((req, index) => (
+                              {method.Requirements.map((req, index) => (
                                 <li key={index}>{req}</li>
                               ))}
                             </ul>
