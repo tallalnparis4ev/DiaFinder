@@ -28,7 +28,7 @@ export default function Home() {
         (!selectedCategory || med.Category === selectedCategory) &&
         (!medicationSearch ||
           med.Name.toLowerCase().includes(medicationSearch.toLowerCase()) ||
-          med.GenericName.toLowerCase().includes(
+          med.GenericName?.toLowerCase().includes(
             medicationSearch.toLowerCase()
           )) &&
         (!manufacturerSearch ||
