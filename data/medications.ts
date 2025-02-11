@@ -43,7 +43,15 @@ function makeMedications(
   return input.map((i) => ({ ...i, Category }));
 }
 
-const availabilities: Record<string, Availability> = {};
+const availabilities: Record<string, Availability> = {
+  libre_2_chemist_4_u: {
+    Name: "Chemist4u",
+    Country: countries.GB,
+    FundingType: FundingType.OutOfPocket,
+    Type: "OnlineStore",
+    Website: "https://www.chemist-4-u.com/freestyle-libre-two-sensor",
+  },
+};
 
 const insulinPumps = [
   {
@@ -374,7 +382,7 @@ const cgmDevices = [
     Name: "FreeStyle Libre 2",
     Manufacturer: "Abbott",
     GenericName: null,
-    Availability: [],
+    Availability: [availabilities.libre_2_chemist_4_u],
   },
   {
     Name: "FreeStyle Libre 3",
