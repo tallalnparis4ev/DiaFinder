@@ -17,6 +17,7 @@ interface LocationSearchProps {
     latitude: number;
     longitude: number;
     country: string;
+    displayName?: string;
   }) => void;
 }
 
@@ -87,6 +88,7 @@ export function LocationSearch({ onLocationSelect }: LocationSearchProps) {
             latitude: lat(),
             longitude: lng(),
             country,
+            displayName: result.formatted_address,
           });
           setValue(result.formatted_address);
         }

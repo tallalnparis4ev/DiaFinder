@@ -2,11 +2,11 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { data } from "@/data/medications";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -19,15 +19,60 @@ import { calculateDistance } from "@/lib/distance";
 import { LocationModal } from "@/components/LocationModal";
 import { getCountryCode } from "countries-list";
 
+// Add this new component for displaying the current location
+function CurrentLocation({
+  location,
+}: {
+  location: {
+    latitude: number;
+    longitude: number;
+    country: string;
+    displayName?: string;
+  };
+}) {
+  return (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <MapPin className="h-4 w-4" />
+      <span>
+        {location.displayName ||
+          `${location.latitude.toFixed(2)}, ${location.longitude.toFixed(2)}`}
+      </span>
+    </div>
+  );
+}
+
 export default function MedicationDetails() {
   const [searchLocation, setSearchLocation] = useState<{
     latitude: number;
     longitude: number;
     country: string;
+    displayName?: string;
   } | null>(null);
+  const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedFundingType, setSelectedFundingType] = useState<string | null>(
     null
   );
+
+  // Load saved location on mount
+  useEffect(() => {
+    const savedLocation = localStorage.getItem("userLocation");
+    if (savedLocation) {
+      setSearchLocation(JSON.parse(savedLocation));
+    } else {
+      setShowLocationModal(true);
+    }
+  }, []);
+
+  const handleLocationSelect = (location: {
+    latitude: number;
+    longitude: number;
+    country: string;
+    displayName?: string;
+  }) => {
+    setSearchLocation(location);
+    localStorage.setItem("userLocation", JSON.stringify(location));
+    setShowLocationModal(false);
+  };
 
   const params = useParams();
   const medicationName = decodeURIComponent(params.name as string);
@@ -78,25 +123,28 @@ export default function MedicationDetails() {
     return <div>Medication not found</div>;
   }
 
-  if (!searchLocation) {
-    return (
-      <LocationModal
-        open={true}
-        onLocationSelect={setSearchLocation}
-        onClose={() => window.history.back()}
-      />
-    );
-  }
-
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-4xl mx-auto">
-        <Link href="/">
-          <Button variant="ghost" className="mb-6">
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            Back to Medications
-          </Button>
-        </Link>
+        <div className="flex justify-between items-center mb-6">
+          <Link href="/">
+            <Button variant="ghost">
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              Back to Medications
+            </Button>
+          </Link>
+          <div className="flex items-center gap-4">
+            {searchLocation && <CurrentLocation location={searchLocation} />}
+            <Button
+              variant="outline"
+              onClick={() => setShowLocationModal(true)}
+              className="flex items-center gap-2"
+            >
+              <MapPin className="h-4 w-4" />
+              Change Location
+            </Button>
+          </div>
+        </div>
 
         <div className="space-y-8">
           {/* Medication Info */}
@@ -215,6 +263,18 @@ export default function MedicationDetails() {
           </div>
         </div>
       </div>
+
+      <LocationModal
+        open={showLocationModal}
+        onLocationSelect={handleLocationSelect}
+        onClose={() => {
+          if (searchLocation) {
+            setShowLocationModal(false);
+          } else {
+            window.history.back();
+          }
+        }}
+      />
     </div>
   );
 }
